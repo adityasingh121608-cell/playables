@@ -115,7 +115,12 @@
 
       ctx.fillStyle = '#0f172a';
       ctx.beginPath();
-      ctx.roundRect(-width / 3, -height / 6, (width / 3) * 2, height / 2.2, 5);
+      // Safe fallback for roundRect across browsers
+      if (ctx.roundRect) {
+        ctx.roundRect(-width / 3, -height / 6, (width / 3) * 2, height / 2.2, 5);
+      } else {
+        ctx.rect(-width / 3, -height / 6, (width / 3) * 2, height / 2.2);
+      }
       ctx.fill();
 
       ctx.fillStyle = '#38bdf8';
@@ -136,7 +141,6 @@
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
 
-      // --- STRICT STATE LOCK: Pause all updates if game is won or lost ---
       if (state === 'PLAYING') {
         playTime += dt;
         roadOffset = (roadOffset + 380 * dt) % 80;
@@ -155,12 +159,10 @@
           if (bullets[i].y < -20) bullets.splice(i, 1);
         }
 
-        // Wave of 4 traffic cars
         if (playTime < 7 && enemies.filter(e => !e.isBoss).length < 4 && Math.random() < 3 * dt) {
           enemies.push({ x: 50 + Math.random() * (W - 100), y: -70, hp: 3, isBoss: false });
         }
 
-        // Spawn Boss after traffic wave is cleared
         if (playTime >= 7 && !bossSpawned && enemies.filter(e => !e.isBoss).length === 0) {
           bossSpawned = true;
           enemies.push({ x: W / 2, y: -120, hp: 20, isBoss: true });
@@ -176,4 +178,106 @@
             player.hp -= en.isBoss ? 35 : 20;
             spawnParticles(player.x, player.y, '#ef4444', 12);
             enemies.splice(i, 1);
-            document.getElementById('hp-display
+            document.getElementById('hp-display').innerText = `ARMOR: ${Math.max(0, player.hp)}%`;
+
+            if (player.hp <= 0) {
+              state = 'DEFEAT';
+              document.getElementById('defeat-card').classList.add('active');
+            }
+            continue;
+          }
+
+          for (let j = bullets.length - 1; j >= 0; j--) {
+            let b = bullets[j];
+            if (Math.abs(en.x - b.x) < w / 2 && Math.abs(en.y - b.y) < h / 2) {
+              bullets.splice(j, 1);
+              en.hp--;
+              spawnParticles(b.x, b.y, '#facc15', 3);
+              if (en.hp <= 0) {
+                score += en.isBoss ? 500 : 100;
+                spawnParticles(en.x, en.y, '#ef4444', 14);
+                document.getElementById('score-display').innerText = `SCORE: ${score}`;
+                if (en.isBoss) bossDefeated = true;
+                enemies.splice(i, 1);
+                break;
+              }
+            }
+          }
+
+          if (en.y > H + 50) enemies.splice(i, 1);
+        }
+
+        if (bossSpawned && bossDefeated && enemies.length === 0) {
+          state = 'VICTORY';
+          document.getElementById('victory-card').classList.add('active');
+        }
+      }
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.x += p.vx; p.y += p.vy;
+        p.life -= 3.5 * dt;
+        if (p.life <= 0) particles.splice(i, 1);
+      }
+
+      // --- RENDERING SCENE ---
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(24, 0, W - 48, H);
+      ctx.fillStyle = '#090d16';
+      ctx.fillRect(0, 0, 24, H);
+      ctx.fillRect(W - 24, 0, 24, H);
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = '#38bdf8';
+      for (let y = -80; y < H; y += 80) {
+        ctx.fillRect(W / 3 - 2, y + roadOffset, 4, 45);
+        ctx.fillRect((W / 3) * 2 - 2, y + roadOffset, 4, 45);
+      }
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = '#facc15';
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#facc15';
+      bullets.forEach(b => { ctx.beginPath(); ctx.arc(b.x, b.y, 5, 0, Math.PI * 2); ctx.fill(); });
+      ctx.shadowBlur = 0;
+
+      enemies.forEach(en => {
+        let color = en.isBoss ? '#c084fc' : '#f87171';
+        let w = en.isBoss ? 76 : 42;
+        let h = en.isBoss ? 104 : 68;
+        drawCar(en.x, en.y, w, h, color, en.isBoss);
+      });
+
+      drawCar(player.x, player.y, player.width, player.height, '#38bdf8', false);
+
+      particles.forEach(p => {
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle = p.color;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2); ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+
+      if (state === 'TUTORIAL') {
+        ctx.fillStyle = 'rgba(3, 7, 18, 0.85)';
+        ctx.fillRect(0, 0, W, H);
+
+        const handX = W / 2 + Math.sin(performance.now() * 0.005) * 80;
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '900 20px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('DRAG TO STEER & SHOOT!', W / 2, H / 2 - 50);
+
+        ctx.font = '45px sans-serif';
+        ctx.fillText('👆', handX, H - 120);
+      }
+
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
