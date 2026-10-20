@@ -13,7 +13,6 @@
     #hud { position: absolute; top: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; z-index: 10; }
     .hud-badge { background: rgba(15, 23, 42, 0.9); border: 2px solid #38bdf8; color: #38bdf8; font-weight: 900; font-size: 14px; padding: 6px 14px; border-radius: 99px; letter-spacing: 1px; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
 
-    /* End Card Overlays */
     .end-card { position: absolute; inset: 0; background: radial-gradient(circle, rgba(11,19,41,0.97) 0%, rgba(3,7,18,0.99) 100%); display: none; flex-direction: column; justify-content: center; align-items: center; padding: 28px; text-align: center; z-index: 30; cursor: pointer; }
     .end-card.active { display: flex; animation: fadeIn 0.4s ease-out forwards; }
     .alert-badge { background: #ef4444; color: #fff; font-weight: 900; font-size: 13px; padding: 6px 16px; border-radius: 99px; letter-spacing: 1.5px; margin-bottom: 16px; box-shadow: 0 0 20px rgba(239, 68, 68, 0.6); animation: pulseAlert 1s infinite alternate; }
@@ -35,7 +34,6 @@
     
     <canvas id="game-canvas" width="360" height="640"></canvas>
 
-    <!-- Victory End Card -->
     <div id="victory-card" class="end-card">
       <div class="alert-badge">🏆 HIGHWAY ESCAPE SUCCESSFUL!</div>
       <div class="end-title">HEATRUN OVERDRIVE</div>
@@ -43,7 +41,6 @@
       <div class="cta-btn">INSTALL & PLAY NOW</div>
     </div>
 
-    <!-- Defeat End Card -->
     <div id="defeat-card" class="end-card">
       <div class="alert-badge" style="background:#f59e0b;">💥 VEHICLE DESTROYED</div>
       <div class="end-title">MISSION FAILED</div>
@@ -63,7 +60,6 @@
     const enemies = [];
     const particles = [];
 
-    // --- CROSS-DEVICE POINTER MAPPING ---
     function handlePointerMove(clientX, clientY) {
       if (state !== 'PLAYING' && state !== 'TUTORIAL') return;
       const rect = canvas.getBoundingClientRect();
@@ -102,7 +98,6 @@
     function drawCar(x, y, width, height, bodyColor, isBoss = false) {
       ctx.save();
       ctx.translate(x, y);
-
       ctx.shadowBlur = isBoss ? 25 : 12;
       ctx.shadowColor = bodyColor;
 
@@ -133,7 +128,6 @@
       ctx.shadowColor = ctx.fillStyle;
       ctx.fillRect(-width / 2 + 4, -height / 2, 5, 3);
       ctx.fillRect(width / 2 - 9, -height / 2, 5, 3);
-
       ctx.restore();
     }
 
@@ -142,12 +136,12 @@
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
 
+      // --- STRICT STATE LOCK: Pause all updates if game is won or lost ---
       if (state === 'PLAYING') {
         playTime += dt;
         roadOffset = (roadOffset + 380 * dt) % 80;
         player.x += (player.targetX - player.x) * 18 * dt;
 
-        // Auto-fire bullets
         shootTimer += dt;
         if (shootTimer >= 0.15) {
           shootTimer = 0;
@@ -161,136 +155,25 @@
           if (bullets[i].y < -20) bullets.splice(i, 1);
         }
 
-        // Spawn wave traffic (Limited wave of 4 cars, then Boss)
+        // Wave of 4 traffic cars
         if (playTime < 7 && enemies.filter(e => !e.isBoss).length < 4 && Math.random() < 3 * dt) {
           enemies.push({ x: 50 + Math.random() * (W - 100), y: -70, hp: 3, isBoss: false });
         }
 
-        // Spawn Boss after traffic wave is handled or at 7 seconds
+        // Spawn Boss after traffic wave is cleared
         if (playTime >= 7 && !bossSpawned && enemies.filter(e => !e.isBoss).length === 0) {
           bossSpawned = true;
           enemies.push({ x: W / 2, y: -120, hp: 20, isBoss: true });
         }
 
-        // Update enemies & collision damage
         for (let i = enemies.length - 1; i >= 0; i--) {
           let en = enemies[i];
           let w = en.isBoss ? 76 : 42;
           let h = en.isBoss ? 104 : 68;
           en.y += (en.isBoss ? 80 : 150) * dt;
 
-          // --- PLAYER DAMAGE TAKEN FROM ENEMY COLLISION ---
           if (Math.abs(player.x - en.x) < (player.width + w) / 3 && Math.abs(player.y - en.y) < (player.height + h) / 3) {
-            player.hp -= en.isBoss ? 25 : 15; // Real damage dealt to player!
-            spawnParticles(player.x, player.y, '#ef4444', 10);
-            enemies.splice(i, 1); // Remove enemy on crash
-            
-            document.getElementById('hp-display').innerText = `ARMOR: ${Math.max(0, player.hp)}%`;
-
-            if (player.hp <= 0) {
-              state = 'DEFEAT';
-              document.getElementById('defeat-card').classList.add('active');
-            }
-            continue;
-          }
-
-          // --- BULLET DAMAGE DEALT TO ENEMY ---
-          for (let j = bullets.length - 1; j >= 0; j--) {
-            let b = bullets[j];
-            if (Math.abs(en.x - b.x) < w / 2 && Math.abs(en.y - b.y) < h / 2) {
-              bullets.splice(j, 1);
-              en.hp--;
-              spawnParticles(b.x, b.y, '#facc15', 3);
-              if (en.hp <= 0) {
-                score += en.isBoss ? 500 : 100;
-                spawnParticles(en.x, en.y, '#ef4444', 14);
-                document.getElementById('score-display').innerText = `SCORE: ${score}`;
-                
-                if (en.isBoss) bossDefeated = true;
-                enemies.splice(i, 1);
-                break;
-              }
-            }
-          }
-
-          // If enemy passes screen without being destroyed
-          if (en.y > H + 50) {
+            player.hp -= en.isBoss ? 35 : 20;
+            spawnParticles(player.x, player.y, '#ef4444', 12);
             enemies.splice(i, 1);
-          }
-        }
-
-        // --- VICTORY CONDITION: Wave & Boss Cleared ---
-        if (bossSpawned && bossDefeated && enemies.length === 0) {
-          state = 'VICTORY';
-          document.getElementById('victory-card').classList.add('active');
-        }
-      }
-
-      for (let i = particles.length - 1; i >= 0; i--) {
-        let p = particles[i];
-        p.x += p.vx; p.y += p.vy;
-        p.life -= 3.5 * dt;
-        if (p.life <= 0) particles.splice(i, 1);
-      }
-
-      // --- RENDERING SCENE ---
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(0, 0, W, H);
-
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(24, 0, W - 48, H);
-      ctx.fillStyle = '#090d16';
-      ctx.fillRect(0, 0, 24, H);
-      ctx.fillRect(W - 24, 0, 24, H);
-
-      ctx.fillStyle = '#38bdf8';
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = '#38bdf8';
-      for (let y = -80; y < H; y += 80) {
-        ctx.fillRect(W / 3 - 2, y + roadOffset, 4, 45);
-        ctx.fillRect((W / 3) * 2 - 2, y + roadOffset, 4, 45);
-      }
-      ctx.shadowBlur = 0;
-
-      ctx.fillStyle = '#facc15';
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = '#facc15';
-      bullets.forEach(b => { ctx.beginPath(); ctx.arc(b.x, b.y, 5, 0, Math.PI * 2); ctx.fill(); });
-      ctx.shadowBlur = 0;
-
-      enemies.forEach(en => {
-        let color = en.isBoss ? '#c084fc' : '#f87171';
-        let w = en.isBoss ? 76 : 42;
-        let h = en.isBoss ? 104 : 68;
-        drawCar(en.x, en.y, w, h, color, en.isBoss);
-      });
-
-      drawCar(player.x, player.y, player.width, player.height, '#38bdf8', false);
-
-      particles.forEach(p => {
-        ctx.globalAlpha = Math.max(0, p.life);
-        ctx.fillStyle = p.color;
-        ctx.beginPath(); ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2); ctx.fill();
-      });
-      ctx.globalAlpha = 1;
-
-      if (state === 'TUTORIAL') {
-        ctx.fillStyle = 'rgba(3, 7, 18, 0.85)';
-        ctx.fillRect(0, 0, W, H);
-
-        const handX = W / 2 + Math.sin(performance.now() * 0.005) * 80;
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '900 20px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('DRAG TO STEER & SHOOT!', W / 2, H / 2 - 50);
-
-        ctx.font = '45px sans-serif';
-        ctx.fillText('👆', handX, H - 120);
-      }
-
-      requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
-  </script>
-</body>
-</html>
+            document.getElementById('hp-display
