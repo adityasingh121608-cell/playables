@@ -4,18 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Playable Ad</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #090d16; font-family: sans-serif; display: flex; justify-content: center; align-items: center; touch-action: none; }
-    #game-wrapper { position: relative; width: 100vw; height: 100vh; max-width: 420px; max-height: 760px; background: #1e293b; overflow: hidden; box-shadow: 0 0 40px rgba(0,0,0,0.8); }
-    canvas { width: 100%; height: 100%; display: block; }
-    #end-card { position: absolute; inset: 0; background: rgba(9,13,22,0.9); display: none; flex-direction: column; justify-content: center; align-items: center; padding: 24px; text-align: center; z-index: 20; cursor: pointer; }
-    #end-card.active { display: flex; }
-    .badge { background: #ef4444; color: #fff; font-weight: 800; font-size: 13px; padding: 6px 14px; border-radius: 999px; margin-bottom: 14px; text-transform: uppercase; }
-    #end-title { color: #fff; font-size: 30px; font-weight: 900; margin-bottom: 10px; }
-    #end-subtitle { color: #cbd5e1; font-size: 16px; margin-bottom: 28px; }
-    #cta-btn { background: #22c55e; color: #fff; font-size: 20px; font-weight: 900; padding: 18px 32px; border-radius: 16px; border: 3px solid #86efac; text-transform: uppercase; }
-  </style>
+  <style>*{box-sizing:border-box;user-select:none;margin:0;padding:0}html,body{touch-action:none;background:#090d16;justify-content:center;align-items:center;width:100%;height:100%;font-family:sans-serif;display:flex;overflow:hidden}#game-wrapper{background:#1e293b;width:100vw;max-width:420px;height:100vh;max-height:760px;position:relative;overflow:hidden;box-shadow:0 0 40px #000c}canvas{width:100%;height:100%;display:block}#end-card{text-align:center;z-index:20;cursor:pointer;background:#090d16e6;flex-direction:column;justify-content:center;align-items:center;padding:24px;display:none;position:absolute;inset:0}#end-card.active{display:flex}.badge{color:#fff;text-transform:uppercase;background:#ef4444;border-radius:999px;margin-bottom:14px;padding:6px 14px;font-size:13px;font-weight:800}#end-title{color:#fff;margin-bottom:10px;font-size:30px;font-weight:900}#end-subtitle{color:#cbd5e1;margin-bottom:28px;font-size:16px}#cta-btn{color:#fff;text-transform:uppercase;background:#22c55e;border:3px solid #86efac;border-radius:16px;padding:18px 32px;font-size:20px;font-weight:900}</style>
 </head>
 <body>
   <div id="game-wrapper">
