@@ -3,17 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Playable Ad</title>
-  <style>*{box-sizing:border-box;user-select:none;margin:0;padding:0}html,body{touch-action:none;background:#090d16;justify-content:center;align-items:center;width:100%;height:100%;font-family:sans-serif;display:flex;overflow:hidden}#game-wrapper{background:#1e293b;width:100vw;max-width:420px;height:100vh;max-height:760px;position:relative;overflow:hidden;box-shadow:0 0 40px #000c}canvas{width:100%;height:100%;display:block}#end-card{text-align:center;z-index:20;cursor:pointer;background:#090d16e6;flex-direction:column;justify-content:center;align-items:center;padding:24px;display:none;position:absolute;inset:0}#end-card.active{display:flex}.badge{color:#fff;text-transform:uppercase;background:#ef4444;border-radius:999px;margin-bottom:14px;padding:6px 14px;font-size:13px;font-weight:800}#end-title{color:#fff;margin-bottom:10px;font-size:30px;font-weight:900}#end-subtitle{color:#cbd5e1;margin-bottom:28px;font-size:16px}#cta-btn{color:#fff;text-transform:uppercase;background:#22c55e;border:3px solid #86efac;border-radius:16px;padding:18px 32px;font-size:20px;font-weight:900}</style>
+  <title>Heatrun Overdrive - Playable Ad</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #030712; font-family: 'Segoe UI', Roboto, sans-serif; display: flex; justify-content: center; align-items: center; touch-action: none; }
+    #game-wrapper { position: relative; width: 100vw; height: 100vh; max-width: 400px; max-height: 720px; background: #0b1329; overflow: hidden; box-shadow: 0 0 60px rgba(56, 189, 248, 0.25); border: 3px solid #1e293b; border-radius: 12px; }
+    canvas { width: 100%; height: 100%; display: block; touch-action: none; }
+    
+    #hud { position: absolute; top: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; z-index: 10; }
+    .hud-badge { background: rgba(15, 23, 42, 0.9); border: 2px solid #38bdf8; color: #38bdf8; font-weight: 900; font-size: 14px; padding: 6px 14px; border-radius: 99px; letter-spacing: 1px; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
+
+    .end-card { position: absolute; inset: 0; background: radial-gradient(circle, rgba(11,19,41,0.97) 0%, rgba(3,7,18,0.99) 100%); display: none; flex-direction: column; justify-content: center; align-items: center; padding: 28px; text-align: center; z-index: 30; cursor: pointer; }
+    .end-card.active { display: flex; animation: fadeIn 0.4s ease-out forwards; }
+    .alert-badge { background: #ef4444; color: #fff; font-weight: 900; font-size: 13px; padding: 6px 16px; border-radius: 99px; letter-spacing: 1.5px; margin-bottom: 16px; box-shadow: 0 0 20px rgba(239, 68, 68, 0.6); animation: pulseAlert 1s infinite alternate; }
+    .end-title { color: #fff; font-size: 32px; font-weight: 900; margin-bottom: 8px; text-transform: uppercase; text-shadow: 0 0 20px rgba(56, 189, 248, 0.6); }
+    .end-subtitle { color: #94a3b8; font-size: 15px; margin-bottom: 32px; line-height: 1.4; }
+    .cta-btn { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #fff; font-size: 20px; font-weight: 900; padding: 18px 36px; border-radius: 16px; border: 3px solid #86efac; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.6); text-transform: uppercase; letter-spacing: 1px; animation: pulseBtn 1s infinite alternate; }
+    
+    @keyframes pulseBtn { from { transform: scale(1); box-shadow: 0 10px 30px rgba(34, 197, 94, 0.4); } to { transform: scale(1.06); box-shadow: 0 15px 40px rgba(34, 197, 94, 0.7); } }
+    @keyframes pulseAlert { from { opacity: 0.8; } to { opacity: 1; transform: scale(1.05); } }
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+  </style>
 </head>
 <body>
   <div id="game-wrapper">
+    <div id="hud">
+      <div class="hud-badge" id="score-display">SCORE: 0</div>
+      <div class="hud-badge" id="hp-display" style="border-color: #ef4444; color: #ef4444;">ARMOR: 100%</div>
+    </div>
+    
     <canvas id="game-canvas" width="360" height="640"></canvas>
-    <div id="end-card">
-      <div class="badge">BOSS WAVE DETECTED!</div>
-      <div id="end-title">DEMO RACER</div>
-      <div id="end-subtitle">Upgrade armor to continue!</div>
-      <div id="cta-btn">INSTALL & CONTINUE</div>
+
+    <div id="victory-card" class="end-card">
+      <div class="alert-badge">🏆 HIGHWAY ESCAPE SUCCESSFUL!</div>
+      <div class="end-title">HEATRUN OVERDRIVE</div>
+      <div class="end-subtitle">Download now to unlock custom supercars and open-world police chases!</div>
+      <div class="cta-btn">INSTALL & PLAY NOW</div>
+    </div>
+
+    <div id="defeat-card" class="end-card">
+      <div class="alert-badge" style="background:#f59e0b;">💥 VEHICLE DESTROYED</div>
+      <div class="end-title">MISSION FAILED</div>
+      <div class="end-subtitle">Upgrade your armor and weapons in the full game!</div>
+      <div class="cta-btn">TRY AGAIN / INSTALL</div>
     </div>
   </div>
 
@@ -22,110 +54,126 @@
     const ctx = canvas.getContext('2d');
     const W = 360, H = 640;
 
-    let state = 'TUTORIAL', score = 0, playTime = 0, roadOffset = 0, shootTimer = 0, bossSpawned = false;
-    const player = { x: W / 2, y: H - 110, targetX: W / 2 };
+    let state = 'TUTORIAL', score = 0, playTime = 0, roadOffset = 0, shootTimer = 0, bossSpawned = false, bossDefeated = false;
+    const player = { x: W / 2, y: H - 100, targetX: W / 2, width: 42, height: 74, hp: 100, maxHp: 100 };
     const bullets = [];
-    const enemies = [{ x: W / 2, y: 100, hp: 3, radius: 22, isBoss: false }];
+    const enemies = [];
+    const particles = [];
 
-    window.addEventListener('pointerdown', (e) => {
+    function handlePointerMove(clientX, clientY) {
+      if (state !== 'PLAYING' && state !== 'TUTORIAL') return;
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = W / rect.width;
+      const canvasX = (clientX - rect.left) * scaleX;
+      player.targetX = Math.max(40, Math.min(W - 40, canvasX));
       if (state === 'TUTORIAL') state = 'PLAYING';
-      if (state === 'PLAYING') player.targetX = Math.max(40, Math.min(W - 40, e.clientX));
+    }
+
+    canvas.addEventListener('pointerdown', (e) => {
+      canvas.setPointerCapture(e.pointerId);
+      handlePointerMove(e.clientX, e.clientY);
     });
-    window.addEventListener('pointermove', (e) => {
-      if (state === 'PLAYING' && e.buttons > 0) player.targetX = Math.max(40, Math.min(W - 40, e.clientX));
+    canvas.addEventListener('pointermove', (e) => {
+      handlePointerMove(e.clientX, e.clientY);
     });
 
-    document.getElementById('end-card').addEventListener('click', () => {
-      window.open('https://play.google.com/store/apps/details?id=com.example.game', '_blank');
-    });
+    const triggerStoreRedirect = () => {
+      window.open('https://play.google.com/store/apps/details?id=com.nitrobyte.heatrun', '_blank');
+    };
+    document.getElementById('victory-card').addEventListener('click', triggerStoreRedirect);
+    document.getElementById('defeat-card').addEventListener('click', triggerStoreRedirect);
+
+    function spawnParticles(x, y, color, count = 6) {
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x, y,
+          vx: (Math.random() - 0.5) * 8,
+          vy: (Math.random() - 0.5) * 8,
+          life: 1,
+          color
+        });
+      }
+    }
+
+    function drawCar(x, y, width, height, bodyColor, isBoss = false) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.shadowBlur = isBoss ? 25 : 12;
+      ctx.shadowColor = bodyColor;
+
+      ctx.fillStyle = bodyColor;
+      ctx.beginPath();
+      ctx.moveTo(-width / 2 + 6, -height / 2);
+      ctx.lineTo(width / 2 - 6, -height / 2);
+      ctx.quadraticCurveTo(width / 2 + 4, -height / 4, width / 2 - 2, height / 4);
+      ctx.lineTo(width / 2 + 2, height / 2 - 4);
+      ctx.lineTo(-width / 2 - 2, height / 2 - 4);
+      ctx.lineTo(-width / 2 + 2, height / 4);
+      ctx.quadraticCurveTo(-width / 2 - 4, -height / 4, -width / 2 + 6, -height / 2);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.roundRect(-width / 3, -height / 6, (width / 3) * 2, height / 2.2, 5);
+      ctx.fill();
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.globalAlpha = 0.8;
+      ctx.fillRect(-width / 3 + 4, -height / 6 + 2, (width / 3) * 2 - 8, 14);
+      ctx.globalAlpha = 1.0;
+
+      ctx.fillStyle = isBoss ? '#facc15' : '#ffffff';
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = ctx.fillStyle;
+      ctx.fillRect(-width / 2 + 4, -height / 2, 5, 3);
+      ctx.fillRect(width / 2 - 9, -height / 2, 5, 3);
+      ctx.restore();
+    }
 
     let last = performance.now();
     function loop(now) {
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
 
+      // --- STRICT STATE LOCK: Pause all updates if game is won or lost ---
       if (state === 'PLAYING') {
         playTime += dt;
-        roadOffset = (roadOffset + 260 * dt) % 80;
-        player.x += (player.targetX - player.x) * 14 * dt;
+        roadOffset = (roadOffset + 380 * dt) % 80;
+        player.x += (player.targetX - player.x) * 18 * dt;
 
         shootTimer += dt;
-        if (shootTimer >= 0.2) {
+        if (shootTimer >= 0.15) {
           shootTimer = 0;
-          bullets.push({ x: player.x, y: player.y - 30 });
+          bullets.push({ x: player.x - 10, y: player.y - 36 });
+          bullets.push({ x: player.x + 10, y: player.y - 36 });
+          spawnParticles(player.x, player.y + 36, '#38bdf8', 2);
         }
 
         for (let i = bullets.length - 1; i >= 0; i--) {
-          bullets[i].y -= 500 * dt;
+          bullets[i].y -= 700 * dt;
           if (bullets[i].y < -20) bullets.splice(i, 1);
         }
 
-        if (playTime < 5 && Math.random() < 2 * dt) {
-          enemies.push({ x: 60 + Math.random() * (W - 120), y: -40, hp: 3, radius: 22, isBoss: false });
+        // Wave of 4 traffic cars
+        if (playTime < 7 && enemies.filter(e => !e.isBoss).length < 4 && Math.random() < 3 * dt) {
+          enemies.push({ x: 50 + Math.random() * (W - 100), y: -70, hp: 3, isBoss: false });
         }
-        if (playTime >= 5 && !bossSpawned) {
+
+        // Spawn Boss after traffic wave is cleared
+        if (playTime >= 7 && !bossSpawned && enemies.filter(e => !e.isBoss).length === 0) {
           bossSpawned = true;
-          enemies.push({ x: W / 2, y: -80, hp: 30, radius: 52, isBoss: true });
+          enemies.push({ x: W / 2, y: -120, hp: 20, isBoss: true });
         }
 
         for (let i = enemies.length - 1; i >= 0; i--) {
           let en = enemies[i];
-          en.y += (en.isBoss ? 80 : 120) * dt;
+          let w = en.isBoss ? 76 : 42;
+          let h = en.isBoss ? 104 : 68;
+          en.y += (en.isBoss ? 80 : 150) * dt;
 
-          for (let j = bullets.length - 1; j >= 0; j--) {
-            let b = bullets[j];
-            if (Math.hypot(en.x - b.x, en.y - b.y) < en.radius + 5) {
-              bullets.splice(j, 1);
-              en.hp--;
-              if (en.hp <= 0 && !en.isBoss) {
-                enemies.splice(i, 1);
-                break;
-              }
-            }
-          }
-
-          if ((en.isBoss && en.y >= 260) || playTime >= 9) {
-            state = 'ENDCARD';
-            document.getElementById('end-card').classList.add('active');
-          }
-        }
-      }
-
-      // Render
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(0, 0, W, H);
-
-      ctx.fillStyle = '#475569';
-      for (let y = -80; y < H; y += 80) {
-        ctx.fillRect(W / 3, y + roadOffset, 6, 40);
-        ctx.fillRect((W / 3) * 2, y + roadOffset, 6, 40);
-      }
-
-      ctx.fillStyle = '#facc15';
-      bullets.forEach(b => { ctx.beginPath(); ctx.arc(b.x, b.y, 5, 0, Math.PI * 2); ctx.fill(); });
-
-      enemies.forEach(en => {
-        ctx.fillStyle = en.isBoss ? '#a855f7' : '#ef4444';
-        ctx.beginPath(); ctx.arc(en.x, en.y, en.radius, 0, Math.PI * 2); ctx.fill();
-      });
-
-      ctx.fillStyle = '#38bdf8';
-      ctx.beginPath(); ctx.roundRect(player.x - 20, player.y - 28, 40, 56, 8); ctx.fill();
-
-      if (state === 'TUTORIAL') {
-        ctx.fillStyle = 'rgba(0,0,0,0.6)';
-        ctx.fillRect(0, 0, W, H);
-        ctx.fillStyle = '#fff';
-        ctx.font = '900 20px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('DRAG TO STEER & SHOOT!', W / 2, H / 2 - 30);
-        ctx.font = '38px sans-serif';
-        ctx.fillText('👆', W / 2, H - 120);
-      }
-
-      requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
-  </script>
-</body>
-</html>
+          if (Math.abs(player.x - en.x) < (player.width + w) / 3 && Math.abs(player.y - en.y) < (player.height + h) / 3) {
+            player.hp -= en.isBoss ? 35 : 20;
+            spawnParticles(player.x, player.y, '#ef4444', 12);
+            enemies.splice(i, 1);
+            document.getElementById('hp-display
