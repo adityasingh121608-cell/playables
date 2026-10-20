@@ -8,7 +8,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
     html, body { width: 100%; height: 100%; overflow: hidden; background: #030712; font-family: 'Segoe UI', Roboto, sans-serif; display: flex; justify-content: center; align-items: center; touch-action: none; }
     #game-wrapper { position: relative; width: 100vw; height: 100vh; max-width: 400px; max-height: 720px; background: #0b1329; overflow: hidden; box-shadow: 0 0 60px rgba(56, 189, 248, 0.25); border: 3px solid #1e293b; border-radius: 12px; }
-    canvas { width: 100%; height: 100%; display: block; cursor: pointer; }
+    canvas { width: 100%; height: 100%; display: block; touch-action: none; }
     
     #hud { position: absolute; top: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; z-index: 10; }
     .hud-badge { background: rgba(15, 23, 42, 0.9); border: 2px solid #38bdf8; color: #38bdf8; font-weight: 900; font-size: 14px; padding: 6px 14px; border-radius: 99px; letter-spacing: 1px; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
@@ -53,20 +53,25 @@
     const enemies = [];
     const particles = [];
 
-    // --- BULLETPROOF TOUCH & MOUSE TRACKING ---
-    function updateTouchPosition(clientX, clientY) {
+    // --- ROBUST CROSS-DEVICE POINTER MAPPING ---
+    function handlePointerMove(clientX, clientY) {
       const rect = canvas.getBoundingClientRect();
-      // Precise scaling from screen pixels to internal 360x640 canvas coordinates
+      // Calculate precise scaling ratio between DOM client rect and internal canvas resolution
       const scaleX = W / rect.width;
-      const x = (clientX - rect.left) * scaleX;
-      player.targetX = Math.max(45, Math.min(W - 45, x));
+      const canvasX = (clientX - rect.left) * scaleX;
+      
+      player.targetX = Math.max(40, Math.min(W - 40, canvasX));
       if (state === 'TUTORIAL') state = 'PLAYING';
     }
 
-    window.addEventListener('pointerdown', (e) => updateTouchPosition(e.clientX, e.clientY));
-    window.addEventListener('pointermove', (e) => { if (e.buttons > 0) updateTouchPosition(e.clientX, e.clientY); });
-    window.addEventListener('touchstart', (e) => updateTouchPosition(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
-    window.addEventListener('touchmove', (e) => updateTouchPosition(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
+    canvas.addEventListener('pointerdown', (e) => {
+      canvas.setPointerCapture(e.pointerId);
+      handlePointerMove(e.clientX, e.clientY);
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      handlePointerMove(e.clientX, e.clientY);
+    });
 
     document.getElementById('end-card').addEventListener('click', () => {
       window.open('https://play.google.com/store/apps/details?id=com.nitrobyte.heatrun', '_blank');
@@ -84,16 +89,13 @@
       }
     }
 
-    // --- SLEEK VECTOR CAR RENDERING ---
     function drawCar(x, y, width, height, bodyColor, isBoss = false) {
       ctx.save();
       ctx.translate(x, y);
 
-      // Glow & Shadow
       ctx.shadowBlur = isBoss ? 25 : 12;
       ctx.shadowColor = bodyColor;
 
-      // Car Body Silhouette
       ctx.fillStyle = bodyColor;
       ctx.beginPath();
       ctx.moveTo(-width / 2 + 6, -height / 2);
@@ -106,7 +108,6 @@
       ctx.closePath();
       ctx.fill();
 
-      // Windshield & Cabin
       ctx.fillStyle = '#0f172a';
       ctx.beginPath();
       ctx.roundRect(-width / 3, -height / 6, (width / 3) * 2, height / 2.2, 5);
@@ -117,7 +118,6 @@
       ctx.fillRect(-width / 3 + 4, -height / 6 + 2, (width / 3) * 2 - 8, 14);
       ctx.globalAlpha = 1.0;
 
-      // Headlights
       ctx.fillStyle = isBoss ? '#facc15' : '#ffffff';
       ctx.shadowBlur = 15;
       ctx.shadowColor = ctx.fillStyle;
@@ -135,9 +135,8 @@
       if (state === 'PLAYING') {
         playTime += dt;
         roadOffset = (roadOffset + 380 * dt) % 80;
-        player.x += (player.targetX - player.x) * 16 * dt; // Smooth responsive tracking
+        player.x += (player.targetX - player.x) * 18 * dt; // Silky smooth interpolation
 
-        // Auto-fire bullets
         shootTimer += dt;
         if (shootTimer >= 0.15) {
           shootTimer = 0;
@@ -151,18 +150,15 @@
           if (bullets[i].y < -20) bullets.splice(i, 1);
         }
 
-        // Spawn traffic cars
         if (playTime < 6 && Math.random() < 2.5 * dt) {
           enemies.push({ x: 50 + Math.random() * (W - 100), y: -70, hp: 3, isBoss: false });
         }
 
-        // Spawn Boss at 6 seconds
         if (playTime >= 6 && !bossSpawned) {
           bossSpawned = true;
           enemies.push({ x: W / 2, y: -120, hp: 25, isBoss: true });
         }
 
-        // Update enemies
         for (let i = enemies.length - 1; i >= 0; i--) {
           let en = enemies[i];
           let w = en.isBoss ? 76 : 42;
@@ -199,18 +195,16 @@
         if (p.life <= 0) particles.splice(i, 1);
       }
 
-      // --- RENDERING SCENE ---
+      // --- RENDER SCENE ---
       ctx.fillStyle = '#0f172a';
       ctx.fillRect(0, 0, W, H);
 
-      // Asphalt Road
       ctx.fillStyle = '#1e293b';
       ctx.fillRect(24, 0, W - 48, H);
       ctx.fillStyle = '#090d16';
       ctx.fillRect(0, 0, 24, H);
       ctx.fillRect(W - 24, 0, 24, H);
 
-      // Lane Dashes
       ctx.fillStyle = '#38bdf8';
       ctx.shadowBlur = 10;
       ctx.shadowColor = '#38bdf8';
@@ -220,14 +214,12 @@
       }
       ctx.shadowBlur = 0;
 
-      // Draw Bullets
       ctx.fillStyle = '#facc15';
       ctx.shadowBlur = 8;
       ctx.shadowColor = '#facc15';
       bullets.forEach(b => { ctx.beginPath(); ctx.arc(b.x, b.y, 5, 0, Math.PI * 2); ctx.fill(); });
       ctx.shadowBlur = 0;
 
-      // Draw Enemies
       enemies.forEach(en => {
         let color = en.isBoss ? '#c084fc' : '#f87171';
         let w = en.isBoss ? 76 : 42;
@@ -235,10 +227,8 @@
         drawCar(en.x, en.y, w, h, color, en.isBoss);
       });
 
-      // Draw Player Car
       drawCar(player.x, player.y, player.width, player.height, '#38bdf8', false);
 
-      // Draw Particles
       particles.forEach(p => {
         ctx.globalAlpha = Math.max(0, p.life);
         ctx.fillStyle = p.color;
@@ -246,7 +236,6 @@
       });
       ctx.globalAlpha = 1;
 
-      // Tutorial Prompt
       if (state === 'TUTORIAL') {
         ctx.fillStyle = 'rgba(3, 7, 18, 0.85)';
         ctx.fillRect(0, 0, W, H);
